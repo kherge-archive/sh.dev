@@ -223,6 +223,12 @@ function must
     fi
 }
 
+# Make sure Docker is available.
+if command -v docker > /dev/null; then
+    echo "Docker is not available in PATH." >&2
+    exit 1
+fi
+
 # Runs the requested command.
 case "$1" in
     ""|shell) cmd_shell ;;
