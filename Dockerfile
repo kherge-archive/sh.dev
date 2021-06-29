@@ -39,7 +39,7 @@ RUN export NVM_DIR="$HOME/.nvm" && \
 RUN mkdir -p .local/opt && \
     git clone https://github.com/kherge/bash.utils.git .local/opt/bash.utils && \
     echo 'export BASH_UTILS=$HOME/.local/opt/bash.utils' >> .bashrc && \
-    echo '. "$BASH_UTILS/bootstrap.sh"' >> .bashrc
+    echo '. "$BASH_UTILS/bootstrap.sh" "$(tty)"' >> .bashrc
 
 # Run forever.
 CMD ["sleep", "infinity"]
