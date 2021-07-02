@@ -105,7 +105,7 @@ CMD [\"sleep\", \"infinity\"]
 "
 
 # The versino of the Dockerfile above.
-VERSION='1.0'
+VERSION='1.1'
 
 ################################################################################
 # Utilities                                                                    #
