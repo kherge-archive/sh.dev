@@ -78,7 +78,9 @@ RUN apt-get update && \\
     apt-get autoremove
 
 # Unminimize.
-RUN yes | unminimize
+RUN yes | unminimize && \\
+    apt-get install -y locales && \\
+    locale-gen en_US.UTF-8
 
 # Install tools.
 RUN apt-get install -y \\
