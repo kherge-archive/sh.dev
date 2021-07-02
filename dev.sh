@@ -77,6 +77,9 @@ RUN apt-get update && \\
     apt-get autoclean && \\
     apt-get autoremove
 
+# Unminimize.
+RUN yes | unminimize
+
 # Install tools.
 RUN apt-get install -y \\
     build-essential libssl-dev pkg-config \\
@@ -173,7 +176,7 @@ debug()
 must()
 {
     "$@"
-    
+
     STATUS=$?
 
     debug "exited [$STATUS]: $*"
