@@ -103,9 +103,9 @@ RUN adduser --uid $USER_ID --gid $GROUP_ID \"$USER_NAME\" && \
 WORKDIR /home/$USER_NAME
 
 # Install sh.env.
-RUN /bin/bash -c '[ -d ~/.local/share ] || \\
-    mkdir -p ~/.local/share' && \\
-    git clone https://github.com/kherge/sh.env.git ~/.local/share/sh.env && \\
+RUN /bin/bash -c '[ -d \"\$HOME/.local/share\" ] || \\
+    mkdir -p \"\$HOME/.local/share\"' && \\
+    git clone https://github.com/kherge/sh.env.git \"\$HOME/.local/share/sh.env\" && \\
     echo 'ENV_DIR=\"\$HOME/.local/share/sh.env\"' && \\
     echo '. \"\$ENV_DIR/env.sh\"'
 
