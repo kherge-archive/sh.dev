@@ -1,0 +1,10 @@
+[Unit]
+Description=Sets up the Docker user.
+After=network-online.target remote-fs.target
+Before=umount.target
+
+[Service]
+ExecStart=/etc/systemd/system/setup-user.sh
+
+[Install]
+WantedBy=multi-user.target

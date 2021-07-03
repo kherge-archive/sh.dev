@@ -39,123 +39,17 @@ fi
 # The name of this script.
 EXE="$(basename "$0")"
 
+# The path to here.
+HERE="$(readlink "$(dirname "$0")")"
+
 # The name of the image.
 IMAGE=dev
-
-# The path to the preferred shell in the container.
-PREFERRED_SHELL=/bin/bash
-
-################################################################################
-# Dockerfile                                                                   #
-################################################################################
-
-# The current user's group ID.
-GROUP_ID=$(id -g)
-
-# The current user's group name.
-GROUP_NAME="$(grep -F ":$(id -g):" < /etc/group | cut -d: -f1)"
 
 # The current user's container password.
 PASSWORD=dev
 
-# The current user's ID.
-USER_ID=$(id -u)
-
-# The current user's name.
-USER_NAME="$USER"
-
-# The setup service.
-SERVICE="
-[Unit]
-Description=Sets up the new Docker volume.
-
-[Service]
-ExecStart=/etc/systemd/user/user-setup.sh
-Type=oneshot
-
-[Install]
-WantedBy=multi-user.target
-"
-
-# The setup script.
-SCRIPT="#!/bin/bash
-set -e
-
-if [ -f \"/home/$USER_NAME/.config/dev/done\" ]; then
-    exit 0
-fi
-
-TARGET=\"/home/$USER_NAME\"
-
-# Rebuild skeleton.
-shopt -s dotglob
-cp /etc/skel/* \"\$TARGET\"
-shopt -u dotglob
-
-# Install sh.env.
-git clone https://github.com/kherge/sh.env.git \"\$TARGET/.local/share/sh.env\"
-echo >> \"\$TARGET/.bashrc\"
-echo '# loading sh.env' >> \"\$TARGET/.bashrc\"
-echo 'ENV_DIR=\"\$HOME/.local/share/sh.env\"' >> \"\$TARGET/.bashrc\"
-echo '. \"\$ENV_DIR/env.sh\"' >> \"\$TARGET/.bashrc\"
-
-# Fix ownership.
-chown -R \"$USER_ID:$GROUP_ID\" \"\$TARGET\"
-"
-
-# The Dockerfile for the container.
-DOCKERFILE="
-FROM ubuntu:21.04
-
-# Disable interactivity during build.
-ARG DEBIAN_FRONTEND=noninteractive
-
-# Update base installation.
-RUN apt-get update && \\
-    apt-get dist-upgrade -y && \\
-    apt-get autoclean && \\
-    apt-get autoremove
-
-# Unminimize.
-RUN yes | unminimize && \\
-    apt-get install -y locales man systemctl && \\
-    locale-gen en_US.UTF-8
-
-# Install tools.
-RUN apt-get install -y \\
-    build-essential libssl-dev pkg-config \\
-    curl git gnupg2 sudo unzip vim zip \\
-    htop
-
-# Create a matching group, if necessary.
-RUN /bin/bash -c '[ \"\$(grep -F :20: < /etc/group)\" != \"\" ] || \\
-    addgroup --gid $GROUP_ID \"$GROUP_NAME\"'
-
-# Create a user with a matching UID & GID.
-RUN adduser --uid $USER_ID --gid $GROUP_ID \"$USER_NAME\" && \\
-    usermod --append --groups sudo \"$USER_NAME\" && \\
-    (echo \"$USER_NAME:$PASSWORD\" | chpasswd)
-
-# Install startup script. This allows us to make changes to the attached volume
-# instead of the directory the volume replaces. Wish we could mount volumes in
-# builds.
-RUN echo '$SCRIPT' > /etc/systemd/user/user-setup.sh && \\
-    echo '$SERVICE' > /etc/systemd/user/user-setup.service && \\
-    chmod 755 /etc/systemd/user/user-setup.sh && \\
-    chmod 644 /etc/systemd/user/user-setup.service && \\
-    systemctl daemon-reload && \\
-    systemctl enable user-setup.service
-
-# Change to the dev user.
-   USER $USER_NAME
-WORKDIR /home/$USER_NAME
-
-# Run forever.
-CMD [\"sleep\", \"infinity\"]
-"
-
-# The versino of the Dockerfile above.
-VERSION='1.2'
+# The path to the preferred shell in the container.
+PREFERRED_SHELL=/bin/bash
 
 ################################################################################
 # Utilities                                                                    #
@@ -365,7 +259,14 @@ image_create()
 {
     debug "Creating the image, $IMAGE:$VERSION..."
 
-    echo "$DOCKERFILE" | must docker build --tag "$IMAGE:$VERSION" -
+    must docker build \
+        --build-arg GROUP_ID=$(id -g) \
+        --build-arg GROUP_NAME="$(grep -F ":$(id -g):" < /etc/group | cut -d: -f1)" \
+        --build-arg PASSWORD="$PASSWORD" \
+        --build-arg USER_ID=$(id -u) \
+        --build-arg USER_NAME="$USER" \
+        --tag "$IMAGE:1.3" \
+        "$HERE/Dockerfile"
 
     # Because we're piping, we need to handle the subshell.
     STATUS=$?
