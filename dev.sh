@@ -79,7 +79,7 @@ RUN apt-get update && \\
 
 # Unminimize.
 RUN yes | unminimize && \\
-    apt-get install -y locales && \\
+    apt-get install -y locales man && \\
     locale-gen en_US.UTF-8
 
 # Install tools.
