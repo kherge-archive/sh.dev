@@ -103,9 +103,11 @@ RUN adduser --uid $USER_ID --gid $GROUP_ID \"$USER_NAME\" && \
 WORKDIR /home/$USER_NAME
 
 # Install sh.env.
-RUN git clone https://github.com/kherge/sh.env.git \"\$HOME/.local/share/sh.env\" && \\
-    echo 'ENV_DIR=\"\$HOME/.local/share/sh.env\"' && \\
-    echo '. \"\$ENV_DIR/env.sh\"'
+RUN git clone https://github.com/kherge/sh.env.git \"/home/$USER_NAME/.local/share/sh.env\" && \\
+    echo >> \"/home/$USER_NAME/.bashrc\" && \\
+    echo '# loading sh.env' >> \"/home/$USER_NAME/.bashrc\" && \\
+    echo 'ENV_DIR=\"/home/$USER_NAME/.local/share/sh.env\"' >> \"/home/$USER_NAME/.bashrc\" && \\
+    echo '. \"\$ENV_DIR/env.sh\"' >> \"/home/$USER_NAME/.bashrc\"
 
 # Run forever.
 CMD [\"sleep\", \"infinity\"]
