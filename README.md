@@ -16,9 +16,7 @@ Features
     - Eases iterative changes to the container.
 - The user name, UID, and GID match the host user name, UID, and GID.
 - The shell script is portable across POSIX-compliant shells.
-- The [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html) paths are used.
-    - `$XDG_CONFIG_HOME/dev`
-    - `$XDG_DATA_HOME/dev`
+- Has [`sh.env`](https://github.com/kherge/sh.env) installed by default.
 
 Requirements
 ------------
@@ -29,9 +27,8 @@ Requirements
 Installation
 ------------
 
-1. Copy `dev.sh` to somewhere in your `$PATH`.
-2. Rename `dev.sh` to `dev`.
-3. Make it executable (e.g. `chmod 755 dev`).
+1. Clone this repository to `$HOME/.local/opt/sh.dev`.
+2. Symlink `$HOME/.local/opt/sh.dev/dev.sh` to somewhere in your `PATH`.
 
 Usage
 -----

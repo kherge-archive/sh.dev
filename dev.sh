@@ -3,44 +3,14 @@
 # Containerized Development Environment Manager                                #
 ################################################################################
 
-# The path to the configuration folder.
-CONFIG="$XDG_CONFIG_HOME"
-
-if [ "$CONFIG" = '' ]; then
-    CONFIG="$HOME/.config"
-fi
-
-CONFIG="$CONFIG/dev"
-
-if [ ! -d "$CONFIG" ]; then
-    if ! mkdir -p "$CONFIG"; then
-        exit 1
-    fi
-fi
-
 # The name of the container.
 CONTAINER=dev
-
-# The path to the data folder.
-DATA="$XDG_DATA_HOME"
-
-if [ "$DATA" = '' ]; then
-    DATA="$HOME/.local/share"
-fi
-
-DATA="$DATA/dev"
-
-if [ ! -d "$DATA" ]; then
-    if ! mkdir -p "$DATA"; then
-        exit 1
-    fi
-fi
 
 # The name of this script.
 EXE="$(basename "$0")"
 
 # The path to here.
-HERE="$(readlink "$(dirname "$0")")"
+HERE="$(dirname "$(readlink "$0")")"
 
 # The name of the image.
 IMAGE=dev
@@ -51,51 +21,15 @@ PASSWORD=dev
 # The path to the preferred shell in the container.
 PREFERRED_SHELL=/bin/bash
 
+# The version of the image.
+VERSION="1.3"
+
+# The name of the volume.
+VOLUME=dev
+
 ################################################################################
 # Utilities                                                                    #
 ################################################################################
-
-###
-# Retrieves the value of a configuration setting.
-#
-# @param  $1 The name of the setting.
-# @stderr    If the setting could not be read.
-# @stdout    The value of the setting.
-# @return    `0` if there is a value, or `1` if not.
-##
-config_get()
-{
-    FILE="$CONFIG/$1"
-
-    if [ -f "$FILE" ]; then
-        if ! cat "$FILE"; then
-            echo "$FILE: could not be read" >&2
-            exit 1
-        fi
-
-        return 0
-    fi
-
-    return 1
-}
-
-###
-# Sets the value of a configuration setting.
-#
-# @param  $1 The name of the setting.
-# @param  $2 The value of the setting.
-# @stderr    If the setting could not be written.
-##
-config_set()
-{
-    FILE="$CONFIG/$1"
-    VALUE="$2"
-
-    if ! echo "$VALUE" > "$FILE"; then
-        echo "$FILE: could not be written" >&2
-        exit 1
-    fi
-}
 
 ###
 # Prints a message to STDERR if DEBUG=1.
@@ -148,8 +82,8 @@ container_attach()
     docker exec \
         --interactive \
         --tty \
-        --user "$USER_NAME" \
-        --workdir "/home/$USER_NAME" \
+        --user "$USER" \
+        --workdir "/home/$USER" \
         "$CONTAINER" "$PREFERRED_SHELL"
 
     exit $?
@@ -164,7 +98,7 @@ container_create()
 
     must docker container create \
         "--name=$CONTAINER" \
-        "--volume=$DATA:/home/$USER_NAME" \
+        "--volume=$VOLUME:/home/$USER" \
         "$IMAGE:$VERSION" > /dev/null
 }
 
@@ -175,7 +109,7 @@ container_destroy()
 {
     debug "Destroying the container, $CONTAINER..."
 
-    must docker container rm "$CONTAINER"
+    must docker container rm "$CONTAINER" > /dev/null
 }
 
 ###
@@ -265,8 +199,8 @@ image_create()
         --build-arg PASSWORD="$PASSWORD" \
         --build-arg USER_ID=$(id -u) \
         --build-arg USER_NAME="$USER" \
-        --tag "$IMAGE:1.3" \
-        "$HERE/Dockerfile"
+        --tag "$IMAGE:$VERSION" \
+        "$HERE"
 
     # Because we're piping, we need to handle the subshell.
     STATUS=$?
@@ -283,7 +217,7 @@ image_destroy()
 {
     debug "Destroying the image, $IMAGE:$VERSION..."
 
-    must docker image rm "$IMAGE:$VERSION"
+    must docker image rm "$IMAGE:$VERSION" > /dev/null
 }
 
 ###
@@ -301,15 +235,23 @@ image_exists()
 }
 
 ###
-# Destroys the volume if it exists.
+# Creates the volume.
+##
+volume_create()
+{
+    debug "Creating the volume..."
+
+    must docker volume create "$VOLUME" > /dev/null
+}
+
+###
+# Destroys the volume.
 ##
 volume_destroy()
 {
-    debug "Destroying the volume, $DATA..."
+    debug "Destroying the volume..."
 
-    if [ -d "$DATA" ]; then
-        must rm -Rf "$DATA"
-    fi
+    must docker volume rm "$VOLUME" > /dev/null
 }
 
 ###
@@ -319,13 +261,11 @@ volume_destroy()
 ##
 volume_exists()
 {
-    debug "Checking if the image, $IMAGE:$VERSION, exists..."
+    debug "Checking if the volume exists..."
 
-    if [ -d "$DATA" ]; then
-        return 0
-    fi
+    docker volume inspect "$VOLUME" > /dev/null 2>&1
 
-    return 1
+    return $?
 }
 
 ################################################################################
@@ -416,6 +356,23 @@ do_clean()
 }
 
 ###
+# Copies files or folders from the container.
+##
+do_from()
+{
+    shift
+
+    if ! container_is_running; then
+        echo "Container is not running." >&2
+        exit 1
+    fi
+
+    docker cp "$CONTAINER:$1" "$2"
+
+    return $?
+}
+
+###
 # Displays the usage guide.
 ##
 do_usage()
@@ -426,10 +383,12 @@ do_usage()
     echo "COMMAND"
     echo
     echo "  clean  Tears down the environment."
+    echo "  from   Copies files or folders from the container."
     echo "  help   Displays this help message."
     echo "  shell  Starts the container and attaches a shell."
     echo "  start  Starts the container."
     echo "  stop   Stops the container."
+    echo "  to     Copies files or folders to the container."
     echo
     echo "OPTIONS"
     echo
@@ -458,6 +417,10 @@ do_shell()
 ##
 do_start()
 {
+    if ! volume_exists; then
+        volume_create
+    fi
+
     if ! image_exists; then
         image_create
     fi
@@ -485,6 +448,23 @@ do_stop()
     fi
 }
 
+###
+# Copies files or folders to the container.
+##
+do_to()
+{
+    shift
+
+    if ! container_is_running; then
+        echo "Container is not running." >&2
+        exit 1
+    fi
+
+    docker cp "$1" "$CONTAINER:$2"
+
+    return $?
+}
+
 ################################################################################
 # Interface                                                                    #
 ################################################################################
@@ -497,9 +477,11 @@ fi
 case "$1" in
     ""|help) do_usage;;
     clean) do_clean "$@";;
+    from) do_from "$@";;
     shell) do_shell;;
     start) do_start;;
     stop) do_stop;;
+    to) do_to "$@";;
     *)
         echo "$EXE: $1: invalid command" >&2
         exit 1
