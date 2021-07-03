@@ -93,14 +93,9 @@ RUN /bin/bash -c '[ \"\$(grep -F :20: < /etc/group)\" != \"\" ] || \\
     addgroup --gid $GROUP_ID \"$GROUP_NAME\"'
 
 # Create a user with a matching UID & GID.
-RUN adduser --uid $USER_ID --gid $GROUP_ID \"$USER_NAME\" && \
-    chown -R \"$USER_NAME:$GROUP_NAME\" \"/home/$USER_NAME\" && \
-    usermod --append --groups sudo \"$USER_NAME\" && \
+RUN adduser --uid $USER_ID --gid $GROUP_ID \"$USER_NAME\" && \\
+    usermod --append --groups sudo \"$USER_NAME\" && \\
     (echo \"$USER_NAME:$PASSWORD\" | chpasswd)
-
-# Change to the dev user.
-   USER $USER_NAME
-WORKDIR /home/$USER_NAME
 
 # Install sh.env.
 RUN git clone https://github.com/kherge/sh.env.git \"/home/$USER_NAME/.local/share/sh.env\" && \\
@@ -108,6 +103,13 @@ RUN git clone https://github.com/kherge/sh.env.git \"/home/$USER_NAME/.local/sha
     echo '# loading sh.env' >> \"/home/$USER_NAME/.bashrc\" && \\
     echo 'ENV_DIR=\"/home/$USER_NAME/.local/share/sh.env\"' >> \"/home/$USER_NAME/.bashrc\" && \\
     echo '. \"\$ENV_DIR/env.sh\"' >> \"/home/$USER_NAME/.bashrc\"
+
+# Fix ownership.
+RUN chown -R \"$USER_NAME:$GROUP_NAME\" \"/home/$USER_NAME\"
+
+# Change to the dev user.
+   USER $USER_NAME
+WORKDIR /home/$USER_NAME
 
 # Run forever.
 CMD [\"sleep\", \"infinity\"]
