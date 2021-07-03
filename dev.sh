@@ -364,7 +364,7 @@ volume_destroy()
     debug "Destroying the volume, $DATA..."
 
     if [ -d "$DATA" ]; then
-        must rm -R "$DATA"
+        must rm -Rf "$DATA"
     fi
 }
 
