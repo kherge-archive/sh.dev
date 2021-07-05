@@ -43,7 +43,7 @@ WORKDIR /home/$USER_NAME
 # Install sh.env.
 RUN git clone https://github.com/kherge/sh.env.git ~/.local/opt/sh.env && \
     echo >> ~/.bashrc && \
-    echo 'ENV_DIR="$HOME/.local/opt/sh.env"' >> ~/.bashrc && \
+    echo 'export ENV_DIR="$HOME/.local/opt/sh.env"' >> ~/.bashrc && \
     echo '. "$ENV_DIR/env.sh"' >> ~/.bashrc
 
 # Run forever.
