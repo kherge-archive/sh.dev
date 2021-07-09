@@ -26,7 +26,8 @@ Installation
 ------------
 
 1. Clone this repository to `$HOME/.local/opt/sh.dev`.
-2. Symlink `$HOME/.local/opt/sh.dev/app/dev.py` to `dev` somewhere in your `PATH`.
+2. Run `pip3 install -r $HOME/.local/opt/sh.dev/app/requirements.txt`.
+3. Symlink `$HOME/.local/opt/sh.dev/app/dev.py` to `dev` somewhere in your `PATH`.
 
 Usage
 -----
