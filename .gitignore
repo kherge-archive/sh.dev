@@ -1,0 +1,12 @@
+# Exclude everything.
+*
+
+# Except this.
+!/.gitignore
+!/README.md
+
+!/app/
+!/app/**
+
+!/image/
+!/image/**
