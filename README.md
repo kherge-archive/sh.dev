@@ -1,59 +1,78 @@
-Containerized Development Environment Manager
-=============================================
+sh.dev
+======
 
 Manages access to a persistent, containerized development environment.
 
 ```sh
-user@host:~$ dev shell
-[...]
-user@88ccb4fd6a0e:~$
+user@host:~$ dev
+user@dev:~$
 ```
 
 Features
 --------
 
-- The container user's home folder persists across container instances through a volume.
-    - Eases iterative changes to the container.
-- The user name, UID, and GID match the host user name, UID, and GID.
-- The shell script is portable across POSIX-compliant shells.
-- Has [`sh.env`](https://github.com/kherge/sh.env) installed by default.
+- Uses a customizable Dockerfile for easy, iterative changes to the OS.
+    - Bundles [`sh.env`](https://github.com/kherge/sh.env).
+- Uses a data volume to persist the home directory across containers.
+- Matches the user name, UID, group name, and GID in the container.
 
 Requirements
 ------------
 
 - Docker
-- POSIX-compliant Shell
+- Python 3
 
 Installation
 ------------
 
 1. Clone this repository to `$HOME/.local/opt/sh.dev`.
-2. Symlink `$HOME/.local/opt/sh.dev/dev.sh` to somewhere in your `PATH`.
+2. Symlink `$HOME/.local/opt/sh.dev/app/dev.py` to `dev` somewhere in your `PATH`.
 
 Usage
 -----
 
-### Running
-
-Run `dev` without arguments to see a usage guide.
+All help and usage documentation is built into the tool.
 
 ```sh
-$ dev
+# Root command help.
+dev -h
+
+# Container management help.
+dev container -h
+
+# Image management help.
+dev image -h
+
+# Volume management help.
+dev volume -h
 ```
+
+### Running
+
+The `dev` command without any arguments will create the volume, image, and
+container before attaching a shell. If any of those already exist, they will
+be re-used.
 
 ### Root Access
 
 You can use `sudo` with the password `dev`.
 
 ```sh
-$ sudo apt install <package>
+user@dev:~$ sudo apt install <package>
 ```
 
-### Installing Binaries
+> Instead of installing packages after the fact, I recommend customizing the
+> Dockerfile to install those packages. This will allow package installation
+> to be preserved across container destroy/create.
 
-- When installing binaries, install them per user instead of system wide.
-    - For example, use [nvm](https://github.com/nvm-sh/nvm) or [SDKMAN!](https://sdkman.io/).
-- Packages should probably be installed through the `Dockerfile`.
-    1. Find `DOCKERFILE` and add the desired packages.
-    2. Run `./dev clean -c -i`.
-    3. Run `./dev shell`.
+### Updating the Container
+
+Once you have customized the `Dockerfile`, you will need to manage the
+container and image before the changes can be applied.
+
+```sh
+dev container stop
+dev container destroy
+dev image destroy
+dev
+```
