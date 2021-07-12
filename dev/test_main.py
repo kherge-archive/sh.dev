@@ -11,6 +11,7 @@ def test_app():
     result = runner.invoke(app)
 
     assert result.exit_code == 0
+    assert result.stdout.rstrip() == "default"
 
 @pytest.mark.parametrize("command", [
     "config",

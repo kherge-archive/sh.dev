@@ -16,8 +16,9 @@ logging.basicConfig(
     level=logging.ERROR
 )
 
-@app.callback()
+@app.callback(invoke_without_command=True)
 def main(
+    context: typer.Context,
     verbose: int = typer.Option(
         0,
         "-v",
@@ -33,3 +34,8 @@ def main(
         logging.getLogger().setLevel(logging.INFO)
     elif verbose == 1:
         logging.getLogger().setLevel(logging.WARN)
+
+    if context.invoked_subcommand is not None:
+        return
+
+    typer.echo("default")
