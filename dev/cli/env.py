@@ -1,6 +1,6 @@
 import typer
 
-app = typer.Typer(help="Manages the containerized development environments.")
+app = typer.Typer(help="Manages the environments.", name="env")
 
 @app.command()
 def create(

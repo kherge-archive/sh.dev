@@ -1,6 +1,6 @@
 import typer
 
-app = typer.Typer(help="Manages the containers.")
+app = typer.Typer(help="Manages the containers.", name="container")
 
 @app.command()
 def create(

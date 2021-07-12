@@ -4,7 +4,7 @@ from typing import Optional
 
 import typer
 
-app = typer.Typer(help="Manages the images.")
+app = typer.Typer(help="Manages the images.", name="image")
 
 @app.command()
 def create(

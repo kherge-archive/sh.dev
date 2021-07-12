@@ -1,6 +1,9 @@
 import typer
 
-app = typer.Typer(help="Manages under-the-hood configuration settings.")
+app = typer.Typer(
+    help="Manages under-the-hood configuration settings.",
+    name="config"
+)
 
 @app.command()
 def get(

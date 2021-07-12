@@ -1,6 +1,6 @@
 import typer
 
-app = typer.Typer(help="Manages the volumes.")
+app = typer.Typer(help="Manages the volumes.", name="volume")
 
 @app.command()
 def create(
