@@ -8,6 +8,13 @@ homepage = "https://github.com/kherge/sh.dev"
 repository = "https://github.com/kherge/sh.dev.git"
 license = "ISC"
 
+packages = [
+    { include="dev", from="." }
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
