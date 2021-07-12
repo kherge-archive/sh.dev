@@ -44,6 +44,17 @@ def test_list():
     assert result.exit_code == 0
 
 @pytest.mark.parametrize("args,stdout", [
+    [["shell"], "shell: default"],
+    [["shell", "test"], "shell: test"]
+])
+def test_shell(args, stdout):
+    """Make sure the shell is attached."""
+    result = runner.invoke(app, args)
+
+    assert result.stdout.rstrip() == stdout
+    assert result.exit_code == 0
+
+@pytest.mark.parametrize("args,stdout", [
     [["start"], "start: default"],
     [["start", "test"], "start: test"]
 ])

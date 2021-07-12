@@ -40,6 +40,18 @@ def list():
     typer.echo('list')
 
 @app.command()
+def shell(
+    name: str = typer.Argument(
+        "default",
+        help="The name of the container."
+    )
+):
+    """
+    Attaches a shell to the running container.
+    """
+    typer.echo(f'shell: {name}')
+
+@app.command()
 def start(
     name: str = typer.Argument(
         "default",
