@@ -38,3 +38,27 @@ def list():
     Lists the available containers.
     """
     typer.echo('list')
+
+@app.command()
+def start(
+    name: str = typer.Argument(
+        "default",
+        help="The name of the container."
+    )
+):
+    """
+    Starts the stopped container.
+    """
+    typer.echo(f'start: {name}')
+
+@app.command()
+def stop(
+    name: str = typer.Argument(
+        "default",
+        help="The name of the container."
+    )
+):
+    """
+    Stops the running container.
+    """
+    typer.echo(f'stop: {name}')
