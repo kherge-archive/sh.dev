@@ -15,6 +15,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.8"
 typer = {extras = ["all"], version = "^0.3.2"}
+tabulate = "^0.8.9"
 
 [tool.poetry.scripts]
 dev = "dev.main:app"
