@@ -1,2 +1,4 @@
 # Exclude local files.
 /.vscode/
+
+**/__pycache__/
