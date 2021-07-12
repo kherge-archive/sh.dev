@@ -1,4 +1,6 @@
 from .. import DOCKER_DIR
+from pathlib import Path
+from typing import Optional
 
 import typer
 
@@ -10,8 +12,8 @@ def create(
         "default",
         help="The name of the image."
     ),
-    path: str = typer.Argument(
-        DOCKER_DIR,
+    path: Path = typer.Argument(
+        Path(DOCKER_DIR),
         help="The path to the directory containing the Dockerfile.",
         metavar="[DIR]"
     )
