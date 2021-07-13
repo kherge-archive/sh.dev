@@ -1,5 +1,6 @@
 from .. import CONFIG_DIR
 from ..manage import config
+from .utils import echo_error
 from tabulate import tabulate
 
 import os
@@ -20,28 +21,34 @@ def get(
     """
     Retrieves the value of a configuration setting.
     """
-    if config.exists(name):
-        typer.echo(config.get(name))
-    else:
-        typer.secho("<not set>", err=True, fg=typer.colors.RED)
+    try:
+        if config.exists(name):
+            typer.echo(config.get(name))
+        else:
+            typer.secho("<not set>", err=True, fg=typer.colors.RED)
+    except BaseException as error:
+        echo_error(error)
 
 @app.command(name="list")
 def listing():
     """
     Lists the available configuration settings.
     """
-    paths = os.listdir(CONFIG_DIR)
-    paths.sort()
+    try:
+        paths = os.listdir(CONFIG_DIR)
+        paths.sort()
 
-    table = []
+        table = []
 
-    for path in paths:
-        name = os.path.splitext(path)[0]
-        value = config.get(name)
+        for path in paths:
+            name = os.path.splitext(path)[0]
+            value = config.get(name)
 
-        table.append([name, value])
+            table.append([name, value])
 
-    typer.echo(tabulate(table, headers=["key", "value"]))
+        typer.echo(tabulate(table, headers=["key", "value"]))
+    except BaseException as error:
+        echo_error(error)
 
 @app.command()
 def set(
@@ -57,4 +64,7 @@ def set(
     """
     Sets the value of a configuration setting.
     """
-    config.set(name, value)
+    try:
+        config.set(name, value)
+    except BaseException as error:
+        echo_error(error)

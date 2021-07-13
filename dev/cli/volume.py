@@ -1,4 +1,5 @@
 from ..manage import volume
+from .utils import echo_error
 from tabulate import tabulate
 
 import typer
@@ -15,7 +16,10 @@ def create(
     """
     Creates a new volume.
     """
-    volume.create(name)
+    try:
+        volume.create(name)
+    except BaseException as error:
+        echo_error(error)
 
 @app.command()
 def destroy(
@@ -36,14 +40,20 @@ def destroy(
     """
     Destroys an existing volume.
     """
-    if confirm:
-        volume.remove(name)
+    try:
+        if confirm:
+            volume.remove(name)
+    except BaseException as error:
+        echo_error(error)
 
 @app.command(name="list")
 def listing():
     """
     Lists the available volumes.
     """
-    volumes = list(map(lambda name: [name], volume.listing()))
+    try:
+        volumes = list(map(lambda name: [name], volume.listing()))
 
-    typer.echo(tabulate(volumes, headers=["Name"]))
+        typer.echo(tabulate(volumes, headers=["Name"]))
+    except BaseException as error:
+        echo_error(error)
