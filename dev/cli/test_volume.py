@@ -1,42 +1,61 @@
-from typer.testing import CliRunner
-
 from .volume import app
+from typer.testing import CliRunner
+from typing import List
+from unittest import mock
 
 import pytest
 
 runner = CliRunner()
 
 def test_app():
-    """Make sure the app can run without any arguments."""
     result = runner.invoke(app)
 
     assert result.exit_code == 0
 
-@pytest.mark.parametrize("args,stdout", [
-    [["create"], f"create: default"],
-    [["create", "test"], "create: test"]
-])
-def test_create(args, stdout):
-    """Make sure the volume is created."""
-    result = runner.invoke(app, args)
+@mock.patch("dev.manage.volume.create")
+def test_create_with_name(mock_create: mock.Mock):
+    result = runner.invoke(app, ["create", "test"])
 
-    assert result.stdout.rstrip() == stdout
+    mock_create.assert_called_once_with("test")
+
     assert result.exit_code == 0
 
-@pytest.mark.parametrize("args,stdout", [
-    [["destroy"], "destroy: default"],
-    [["destroy", "test"], "destroy: test"]
-])
-def test_destroy(args, stdout):
-    """Make sure the volume is destroyed."""
-    result = runner.invoke(app, args)
+@mock.patch("dev.manage.volume.create")
+def test_create_without_name(mock_create: mock.Mock):
+    result = runner.invoke(app, ["create"])
 
-    assert result.stdout.rstrip() == stdout
+    mock_create.assert_called_once_with("default")
+
     assert result.exit_code == 0
 
-def test_list():
-    """Make sure the available volume are listed."""
+@mock.patch("dev.manage.volume.remove")
+def test_destroy_with_name(mock_remove: mock.Mock):
+    result = runner.invoke(app, ["destroy", "-y", "test"])
+
+    mock_remove.assert_called_once_with("test")
+
+    assert result.exit_code == 0
+
+@mock.patch("dev.manage.volume.remove")
+def test_destroy_without_name(mock_remove: mock.Mock):
+    result = runner.invoke(app, ["destroy", "-y"])
+
+    mock_remove.assert_called_once_with("default")
+
+    assert result.exit_code == 0
+
+@mock.patch("dev.cli.volume.tabulate")
+@mock.patch("dev.manage.volume.listing")
+def test_listing(mock_listing: mock.Mock, mock_tabulate: mock.Mock):
+    mock_listing.return_value = ["a", "b", "c"]
+    mock_tabulate.return_value = "tabulated"
+
     result = runner.invoke(app, ["list"])
 
-    assert result.stdout.rstrip() == "list"
+    mock_tabulate.assert_called_once_with(
+        [["a"], ["b"], ["c"]],
+        headers=["Name"]
+    )
+
+    assert result.stdout.rstrip() == "tabulated"
     assert result.exit_code == 0

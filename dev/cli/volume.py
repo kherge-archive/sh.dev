@@ -1,3 +1,6 @@
+from ..manage import volume
+from tabulate import tabulate
+
 import typer
 
 app = typer.Typer(help="Manages the volumes.", name="volume")
@@ -12,10 +15,19 @@ def create(
     """
     Creates a new volume.
     """
-    typer.echo(f'create: {name}')
+    volume.create(name)
 
 @app.command()
 def destroy(
+    confirm: bool = typer.Option(
+        False,
+        "-y",
+        "--yes",
+        help="Confirm destruction.",
+        confirmation_prompt=True,
+        prompt="Are you sure?",
+        show_default=False
+    ),
     name: str = typer.Argument(
         "default",
         help="The name of the volume."
@@ -24,11 +36,14 @@ def destroy(
     """
     Destroys an existing volume.
     """
-    typer.echo(f'destroy: {name}')
+    if confirm:
+        volume.remove(name)
 
 @app.command(name="list")
 def listing():
     """
     Lists the available volumes.
     """
-    typer.echo('list')
+    volumes = list(map(lambda name: [name], volume.listing()))
+
+    typer.echo(tabulate(volumes, headers=["Name"]))
