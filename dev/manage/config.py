@@ -1,34 +1,11 @@
 from .. import CONFIG_DIR
 from pathlib import Path
-from typing import Optional
 
 import json
 import logging
 import os
 
 logger = logging.getLogger(__name__)
-
-class ConfigError(Exception):
-    """An error for configuration related issues."""
-
-    # The error message.
-    message: str
-
-    # The name of the configuration setting.
-    name: str
-
-    # The previous error.
-    previous: Optional[BaseException]
-
-    def __init__(
-        self,
-        name: str,
-        message: str,
-        previous: Optional[BaseException] = None
-    ):
-        self.message = message
-        self.name = name
-        self.previous = previous
 
 def get(name: str):
     """Reads the value of the configuration setting."""
@@ -37,11 +14,8 @@ def get(name: str):
     if path.exists():
         logger.debug(f"reading {name} from {path}")
 
-        try:
-            with path.open("r", encoding="utf-8") as file:
-                return json.load(file)
-        except BaseException as previous:
-            raise ConfigError(name, "could not be read", previous)
+        with path.open("r", encoding="utf-8") as file:
+            return json.load(file)
 
     logger.debug(f"{name} is not set, using None")
 
@@ -66,18 +40,12 @@ def set(name: str, value):
     if value == None or value == "":
         logger.debug(f"deleting {name} from {path}")
 
-        try:
-            path.unlink()
-        except BaseException as previous:
-            raise ConfigError(name, "could not delete", previous)
+        path.unlink()
     else:
         logger.debug(f"writing {name} to {path}")
 
-        try:
-            with path.open("w", encoding="utf-8") as file:
-                json.dump(value, file)
-        except BaseException as previous:
-            raise ConfigError(name, "could not be written", previous)
+        with path.open("w", encoding="utf-8") as file:
+            json.dump(value, file)
 
 def _toPath(name: str) -> Path:
     return Path(os.path.join(CONFIG_DIR, name + ".json"))
