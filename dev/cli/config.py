@@ -25,8 +25,8 @@ def get(
     else:
         typer.secho("<not set>", err=True, fg=typer.colors.RED)
 
-@app.command()
-def list():
+@app.command(name="list")
+def listing():
     """
     Lists the available configuration settings.
     """

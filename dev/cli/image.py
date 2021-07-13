@@ -35,8 +35,8 @@ def destroy(
     """
     typer.echo(f'destroy: {name}')
 
-@app.command()
-def list():
+@app.command(name="list")
+def listing():
     """
     Lists the available images.
     """
