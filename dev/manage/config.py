@@ -9,6 +9,7 @@ import os
 logger = logging.getLogger("dev.manage.config")
 
 class ConfigError(Exception):
+    """An error for configuration related issues."""
 
     # The error message.
     message: str
@@ -29,16 +30,18 @@ def get(name: str):
     """Reads the value of the configuration setting."""
     path = _toPath(name)
 
-    logger.debug(f"reading {name} from {path}")
-
     if path.exists():
+        logger.debug(f"reading {name} from {path}")
+
         try:
             with path.open("r", encoding="utf-8") as file:
                 return json.load(file)
         except BaseException as previous:
             raise ConfigError(name, "could not be read", previous)
-    else:
-        raise ConfigError(name, "does not exist")
+
+    logger.debug(f"{name} is not set, using None")
+
+    return None
 
 def exists(name: str):
     """Checks if the file exists for the configuration setting."""
