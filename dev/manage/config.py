@@ -1,5 +1,6 @@
 from .. import CONFIG_DIR
 from pathlib import Path
+from typing import Optional
 
 import json
 import logging
@@ -17,9 +18,14 @@ class ConfigError(Exception):
     name: str
 
     # The previous error.
-    previous: BaseException
+    previous: Optional[BaseException]
 
-    def __init__(self, name: str, message: str, previous: BaseException = None):
+    def __init__(
+        self,
+        name: str,
+        message: str,
+        previous: Optional[BaseException] = None
+    ):
         self.message = message
         self.name = name
         self.previous = previous
