@@ -18,26 +18,6 @@ def test_create(mock_get: mock.Mock):
     )
 
 @mock.patch("dev.manage.config.get")
-def test_exists(mock_get):
-    mock_get.return_value = "test"
-
-    client = mock.MagicMock()
-    found = mock.MagicMock()
-
-    client.volumes.get.return_value = found
-    found.attrs = {
-        "Labels": {
-            LABEL_NAME: "test"
-        }
-    }
-
-    result = volume.exists("test", client)
-
-    client.volumes.get.assert_called_once_with("test")
-
-    assert result == True
-
-@mock.patch("dev.manage.config.get")
 def test_listing(mock_get: mock.Mock):
     mock_get.return_value = "test"
 

@@ -17,26 +17,6 @@ def create(name: str, client: Optional[docker.DockerClient] = None):
 
     client.volumes.create(name=name, labels=labels)
 
-def exists(name: str, client: Optional[docker.DockerClient] = None):
-    """Checks if a volume with the given name and appropriate label exists."""
-    logger.debug(f"checking if {name} exists")
-
-    client = docker.from_env() if client is None else client
-
-    try:
-        volume = client.volumes.get(name)
-
-        if (
-            volume.attrs["Labels"]
-            and LABEL_NAME in volume.attrs["Labels"]
-            and volume.attrs["Labels"][LABEL_NAME] == get_label(with_name=False)
-        ):
-           return True
-        else:
-            logger.info(f"{name} exists but is not labeled with {get_label()}")
-    except docker.errors.NotFound:
-        return False
-
 def listing(client: Optional[docker.DockerClient] = None):
     """Lists the name of all volumes with the appropriate label."""
     logger.debug(f"listing any labeled with {get_label(with_name=False)}")
