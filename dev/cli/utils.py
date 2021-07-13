@@ -7,3 +7,5 @@ def echo_error(error: BaseException):
         raise error
     else:
         typer.secho(str(error), fg=typer.colors.RED)
+
+        raise typer.Exit(code=1)

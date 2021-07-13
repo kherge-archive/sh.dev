@@ -1,6 +1,8 @@
 from . import utils
 from unittest import mock
 
+import typer
+
 @mock.patch("typer.secho")
 @mock.patch("logging.getLogger")
 def test_echo_error_print(mock_getLogger: mock.Mock, mock_secho: mock.Mock):
@@ -11,12 +13,15 @@ def test_echo_error_print(mock_getLogger: mock.Mock, mock_secho: mock.Mock):
 
     error = "The error message."
 
-    utils.echo_error(error)
+    try:
+        utils.echo_error(error)
+    except BaseException as caught:
+        assert isinstance(caught, typer.Exit)
 
-    mock_secho.assert_called_once_with(error, fg="red")
+        mock_secho.assert_called_once_with(error, fg="red")
 
 @mock.patch("logging.getLogger")
-def test_echo_error_raise(mock_getLogger):
+def test_echo_error_raise(mock_getLogger: mock.Mock):
     logger = mock.MagicMock()
     logger.isEnabledFor.return_value = True
 
