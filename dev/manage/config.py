@@ -5,7 +5,7 @@ import json
 import logging
 import os
 
-logger = logging.getLogger("dev.manage.config")
+logger = logging.getLogger(__name__)
 
 class ConfigError(Exception):
     """An error for configuration related issues."""
