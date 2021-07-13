@@ -48,7 +48,15 @@ def test_list(mock_get: mock.Mock, mock_listdir: mock.Mock, mock_tabulate: mock.
     assert result.exit_code == 0
 
 @mock.patch("dev.manage.config.set")
-def test_set(mock_set: mock.Mock):
+def test_set_json(mock_set: mock.Mock):
+    result = runner.invoke(app, ["set", "--json", "test", '{"test":"value"}'])
+
+    mock_set.assert_called_once_with("test", {"test": "value"})
+
+    assert result.exit_code == 0
+
+@mock.patch("dev.manage.config.set")
+def test_set_string(mock_set: mock.Mock):
     result = runner.invoke(app, ["set", "test", "value"])
 
     mock_set.assert_called_once_with("test", "value")

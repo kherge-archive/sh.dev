@@ -3,6 +3,7 @@ from ..manage import config
 from .utils import echo_error
 from tabulate import tabulate
 
+import json
 import os
 import typer
 
@@ -59,12 +60,35 @@ def set(
     value: str = typer.Argument(
         ...,
         help="The new value for the configuration setting."
+    ),
+    is_json: bool = typer.Option(
+        False,
+        "-j",
+        "--json",
+        help="The value is JSON encoded.",
+        metavar="BOOL"
     )
 ):
     """
     Sets the value of a configuration setting.
+
+    All settings are stored as JSON encoded values. By default the given value
+    is encoded as a string. Alternatively, a JSON encoded value can be directly
+    provided by using the -j, --json option. If JSON is provided, it will be
+    parsed to ensure it is valid.
+
+    As a string:
+
+        dev config set example "My example string."
+
+    As a JSON encoded value:
+
+        dev config set --json example '{"example":"My example string."}'
     """
     try:
+        if is_json:
+            value = json.loads(value)
+
         config.set(name, value)
     except BaseException as error:
         echo_error(error)
