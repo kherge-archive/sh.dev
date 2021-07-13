@@ -1,3 +1,8 @@
+from .. import CONFIG_DIR
+from ..manage import config
+from tabulate import tabulate
+
+import os
 import typer
 
 app = typer.Typer(
@@ -15,14 +20,28 @@ def get(
     """
     Retrieves the value of a configuration setting.
     """
-    typer.echo(f"get: {name}")
+    if config.exists(name):
+        typer.echo(config.get(name))
+    else:
+        typer.secho("<not set>", err=True, fg=typer.colors.RED)
 
 @app.command()
 def list():
     """
     Lists the available configuration settings.
     """
-    typer.echo("list")
+    paths = os.listdir(CONFIG_DIR)
+    paths.sort()
+
+    table = []
+
+    for path in paths:
+        name = os.path.splitext(path)[0]
+        value = config.get(name)
+
+        table.append([name, value])
+
+    typer.echo(tabulate(table, headers=["key", "value"]))
 
 @app.command()
 def set(
@@ -38,4 +57,4 @@ def set(
     """
     Sets the value of a configuration setting.
     """
-    typer.echo(f"set: {name} = {value}")
+    config.set(name, value)
