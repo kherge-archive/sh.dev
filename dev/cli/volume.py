@@ -1,5 +1,5 @@
 from ..manage import volume
-from .utils import echo_error
+from .utils import handle_error
 from tabulate import tabulate
 
 import typer
@@ -19,7 +19,7 @@ def create(
     try:
         volume.create(name)
     except BaseException as error:
-        echo_error(error)
+        handle_error(error)
 
 @app.command()
 def destroy(
@@ -44,7 +44,7 @@ def destroy(
         if confirm:
             volume.remove(name)
     except BaseException as error:
-        echo_error(error)
+        handle_error(error)
 
 @app.command(name="list")
 def listing():
@@ -56,4 +56,4 @@ def listing():
 
         typer.echo(tabulate(volumes, headers=["Name"]))
     except BaseException as error:
-        echo_error(error)
+        handle_error(error)

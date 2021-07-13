@@ -1,6 +1,6 @@
 from .. import CONFIG_DIR
 from ..manage import config
-from .utils import echo_error
+from .utils import handle_error
 from tabulate import tabulate
 
 import json
@@ -28,7 +28,7 @@ def get(
         else:
             typer.secho("<not set>", err=True, fg=typer.colors.RED)
     except BaseException as error:
-        echo_error(error)
+        handle_error(error)
 
 @app.command(name="list")
 def listing():
@@ -49,7 +49,7 @@ def listing():
 
         typer.echo(tabulate(table, headers=["key", "value"]))
     except BaseException as error:
-        echo_error(error)
+        handle_error(error)
 
 @app.command()
 def set(
@@ -91,4 +91,4 @@ def set(
 
         config.set(name, value)
     except BaseException as error:
-        echo_error(error)
+        handle_error(error)

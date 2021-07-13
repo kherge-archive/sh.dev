@@ -5,7 +5,7 @@ import typer
 
 @mock.patch("typer.secho")
 @mock.patch("logging.getLogger")
-def test_echo_error_print(mock_getLogger: mock.Mock, mock_secho: mock.Mock):
+def test_handle_error_print(mock_getLogger: mock.Mock, mock_secho: mock.Mock):
     logger = mock.MagicMock()
     logger.isEnabledFor.return_value = False
 
@@ -14,14 +14,14 @@ def test_echo_error_print(mock_getLogger: mock.Mock, mock_secho: mock.Mock):
     error = "The error message."
 
     try:
-        utils.echo_error(error)
+        utils.handle_error(error)
     except BaseException as caught:
         assert isinstance(caught, typer.Exit)
 
         mock_secho.assert_called_once_with(error, fg="red")
 
 @mock.patch("logging.getLogger")
-def test_echo_error_raise(mock_getLogger: mock.Mock):
+def test_handle_error_raise(mock_getLogger: mock.Mock):
     logger = mock.MagicMock()
     logger.isEnabledFor.return_value = True
 
@@ -30,6 +30,6 @@ def test_echo_error_raise(mock_getLogger: mock.Mock):
     expected = Exception("The test exception.")
 
     try:
-        utils.echo_error(expected)
+        utils.handle_error(expected)
     except BaseException as actual:
         assert expected == actual
