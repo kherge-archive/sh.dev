@@ -16,25 +16,38 @@ logging.basicConfig(
     level=logging.ERROR
 )
 
+def setVerbosity(level: int):
+    """Sets the logging level based on the verbosity requested.
+
+    The verbosity level is mapped to these logging levels:
+    - >=3 is DEBUG
+    - ==2 is INFO
+    - ==1 is WARN
+    """
+    logger = logging.getLogger()
+
+    if level >= 3:
+        logger.setLevel(logging.DEBUG)
+    elif level == 2:
+        logger.setLevel(logging.INFO)
+    elif level == 1:
+        logger.setLevel(logging.WARN)
+
+    logger.debug(f"verbosity is {level}")
+
 @app.callback(invoke_without_command=True)
 def main(
     context: typer.Context,
-    verbose: int = typer.Option(
+    _: int = typer.Option(
         0,
         "-v",
         "--verbose",
+        callback=setVerbosity,
         count=True,
         help="Increases verbosity of invoked commands."
     )
 ):
     """A tool to manage containerized development environments."""
-    if verbose >= 3:
-        logging.getLogger().setLevel(logging.DEBUG)
-    elif verbose == 2:
-        logging.getLogger().setLevel(logging.INFO)
-    elif verbose == 1:
-        logging.getLogger().setLevel(logging.WARN)
-
     if context.invoked_subcommand is not None:
         return
 
