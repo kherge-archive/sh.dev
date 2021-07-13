@@ -1,6 +1,7 @@
 from .. import CONFIG_DIR
 from pathlib import Path
 
+import functools
 import json
 import logging
 import os
@@ -23,6 +24,7 @@ class ConfigError(Exception):
         self.name = name
         self.previous = previous
 
+@functools.cache
 def get(name: str):
     """Reads the value of the configuration setting."""
     path = _toPath(name)
