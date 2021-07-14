@@ -34,6 +34,21 @@ Usage
 
 TBD
 
+Development
+-----------
+
+[Poetry](https://python-poetry.org/) is used for package management.
+
+    poetry install
+
+### Unit Tests
+
+Unit tests can be run once with `pytest`. To include code coverage reporting, use `pytest --cov dev/`. To generate an HTML report on code coverage, use `pytest --cov dev --cov-report=html`.
+
+#### Watching for Changes
+
+To run unit tests using a watcher, use `ptw`.
+
 License
 -------
 
