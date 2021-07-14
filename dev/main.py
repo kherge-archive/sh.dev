@@ -1,7 +1,12 @@
 from .cli import config, container, env, image, volume
+from .manage.config import default
 
 import logging
 import typer
+
+# Set default settings.
+default("core.label", "default")
+default("core.name", "default")
 
 app = typer.Typer(add_completion=False)
 app.add_typer(config.app)

@@ -47,5 +47,10 @@ def set(name: str, value):
         with path.open("w", encoding="utf-8") as file:
             json.dump(value, file)
 
+def default(name: str, value):
+    """Sets the default value for a configuration setting if not already set."""
+    if not exists(name):
+        set(name, value)
+
 def _toPath(name: str) -> Path:
     return Path(os.path.join(CONFIG_DIR, name + ".json"))

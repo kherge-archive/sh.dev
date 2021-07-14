@@ -3,6 +3,26 @@ from . import config
 from pytest_mock import MockerFixture
 from unittest import mock
 
+@mock.patch("dev.manage.config.set")
+@mock.patch("dev.manage.config.exists")
+def test_default_exists(mock_exists: mock.Mock, mock_set: mock.Mock):
+    mock_exists.return_value = True
+
+    config.default("test", "value")
+
+    mock_exists.assert_called_once_with("test")
+    mock_set.assert_not_called()
+
+@mock.patch("dev.manage.config.set")
+@mock.patch("dev.manage.config.exists")
+def test_default_not_exists(mock_exists: mock.Mock, mock_set: mock.Mock):
+    mock_exists.return_value = False
+
+    config.default("test", "value")
+
+    mock_exists.assert_called_once_with("test")
+    mock_set.assert_called_with("test", "value")
+
 @mock.patch("pathlib.Path.open")
 @mock.patch("pathlib.Path.exists")
 @mock.patch("json.load")
