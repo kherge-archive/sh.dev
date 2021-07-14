@@ -1,3 +1,5 @@
+from ..manage import config
+
 import typer
 
 app = typer.Typer(help="Manages the containers.", name="container")
@@ -5,7 +7,7 @@ app = typer.Typer(help="Manages the containers.", name="container")
 @app.command()
 def create(
     image: str = typer.Option(
-        "default",
+        config.get("core.name"),
         "-i",
         "--image",
         help="The name of the image used to create the container."
@@ -23,7 +25,7 @@ def create(
 @app.command()
 def destroy(
     name: str = typer.Argument(
-        "default",
+        config.get("core.name"),
         help="The name of the container."
     )
 ):
@@ -42,7 +44,7 @@ def listing():
 @app.command()
 def shell(
     name: str = typer.Argument(
-        "default",
+        config.get("core.name"),
         help="The name of the container."
     )
 ):
@@ -54,7 +56,7 @@ def shell(
 @app.command()
 def start(
     name: str = typer.Argument(
-        "default",
+        config.get("core.name"),
         help="The name of the container."
     )
 ):
@@ -66,7 +68,7 @@ def start(
 @app.command()
 def stop(
     name: str = typer.Argument(
-        "default",
+        config.get("core.name"),
         help="The name of the container."
     )
 ):

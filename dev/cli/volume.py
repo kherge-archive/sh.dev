@@ -1,4 +1,4 @@
-from ..manage import volume
+from ..manage import config, volume
 from .utils import handle_error
 from tabulate import tabulate
 
@@ -9,7 +9,7 @@ app = typer.Typer(help="Manages the volumes.", name="volume")
 @app.command()
 def create(
     name: str = typer.Argument(
-        "default",
+        config.get("core.name"),
         help="The name of the volume."
     )
 ):
@@ -33,7 +33,7 @@ def destroy(
         show_default=False
     ),
     name: str = typer.Argument(
-        "default",
+        config.get("core.name"),
         help="The name of the volume."
     )
 ):

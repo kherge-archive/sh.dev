@@ -1,3 +1,5 @@
+from ..manage import config
+
 import typer
 
 app = typer.Typer(help="Manages the environments.", name="env")
@@ -5,25 +7,25 @@ app = typer.Typer(help="Manages the environments.", name="env")
 @app.command()
 def create(
     container: str = typer.Option(
-        "default",
+        config.get("core.name"),
         "-c",
         "--container",
         help="The name of the container.",
         metavar="NAME"
     ),
     image: str = typer.Option(
-        "default",
+        config.get("core.name"),
         "-i",
         "--image",
         help="The name of the image.",
         metavar="NAME"
     ),
     name: str = typer.Argument(
-        "default",
+        config.get("core.name"),
         help="The name of the environment."
     ),
     volume: str = typer.Option(
-        "default",
+        config.get("core.name"),
         "-v",
         "--volume",
         help="The name of the volume.",
@@ -50,7 +52,7 @@ def destroy(
         prompt="Are you sure?"
     ),
     name: str = typer.Argument(
-        "default",
+        config.get("core.name"),
         help="The name of the environment."
     )
 ):
