@@ -38,7 +38,7 @@ jobs:
       - name: Install Dependencies
         run: poetry install
       - name: Unit Test
-        run: pytest --cov-report=xml --cov=dev/
+        run: poetry run pytest --cov-report=xml --cov=dev/
 
       # Run analysis.
       - name: Static Analysis
