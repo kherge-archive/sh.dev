@@ -54,3 +54,18 @@ def test_get_user_name(mock_getuid: mock.Mock, mock_getpwuid: mock.Mock):
     mock_getpwuid.assert_called_once_with(123)
 
     assert result == "test"
+
+@mock.patch("dev.manage.config.get")
+def test_is_managed(mock_get: mock.Mock):
+    mock_get.return_value = "test"
+
+    object = mock.MagicMock()
+    object.labels = {
+        utils.LABEL_NAME: "test"
+    }
+
+    result = utils.is_managed(object)
+
+    mock_get.assert_called_once()
+
+    assert result == True

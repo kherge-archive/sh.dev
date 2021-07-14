@@ -1,4 +1,4 @@
-from .utils import LABEL_NAME, get_label
+from .utils import LABEL_NAME, get_label, is_managed
 from typing import Optional
 
 import docker
@@ -37,11 +37,7 @@ def remove(name: str, client: Optional[docker.DockerClient] = None):
     try:
         volume = client.volumes.get(name)
 
-        if (
-            volume.attrs["Labels"]
-            and LABEL_NAME in volume.attrs["Labels"]
-            and volume.attrs["Labels"][LABEL_NAME] == get_label(with_name=False)
-        ):
+        if is_managed(volume):
            volume.remove()
         else:
             logger.info(f"{name} exists but is not labeled with {get_label()}")

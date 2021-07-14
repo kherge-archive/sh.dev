@@ -43,10 +43,8 @@ def test_remove(mock_get: mock.Mock):
     found = mock.MagicMock()
 
     client.volumes.get.return_value = found
-    found.attrs = {
-        "Labels": {
-            LABEL_NAME: "test"
-        }
+    found.labels = {
+        LABEL_NAME: "test"
     }
 
     volume.remove("test", client)

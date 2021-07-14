@@ -1,5 +1,7 @@
 from . import config
-from typing import Final
+from docker.models.containers import Container
+from docker.models.images import Image
+from typing import Final, Union
 
 import grp
 import os
@@ -27,3 +29,10 @@ def get_user_id():
 def get_user_name():
     """Returns the user's name."""
     return pwd.getpwuid(os.getuid()).pw_name
+
+def is_managed(object: Union[Image, Container]):
+    return (
+        hasattr(object, "labels")
+        and LABEL_NAME in object.labels
+        and object.labels[LABEL_NAME] == config.get("core.label")
+    )
