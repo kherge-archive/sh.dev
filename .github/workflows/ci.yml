@@ -1,0 +1,48 @@
+name: Continuous Integration
+
+# Run for all commits not in master.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  test:
+    name: Tests
+
+    # Use Ubuntu.
+    runs-on: ubuntu-latest
+
+    # Test on multiple versions of Python.
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9']
+
+    steps:
+      # Check out the repository.
+      - name: Check Out
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      # Set up Python.
+      - name: Set Up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Set Up Poetry
+        uses: abatilo/actions-poetry@v2.1.0
+        with:
+          poetry-version: '1.1.7'
+
+      # Test the project.
+      - name: Install Dependencies
+        run: poetry install
+      - name: Unit Test
+        run: pytest --cov-report=xml --cov=dev/
+
+      # Run analysis.
+      - name: Static Analysis
+        uses: sonarsource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
