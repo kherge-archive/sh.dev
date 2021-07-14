@@ -2,7 +2,7 @@ from os import environ, path
 from pathlib import Path
 from typing import Final
 
-__all__ = ["cli", "command"]
+__all__ = ["cli"]
 
 # The path to the build directory.
 DOCKER_DIR: Final[Path] = path.normpath(path.join(
