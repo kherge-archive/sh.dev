@@ -1,6 +1,5 @@
 # Exclude local files.
 /.vscode/
-/.coverage
-/htmlcov/
+/coverage/
 
 **/__pycache__/
