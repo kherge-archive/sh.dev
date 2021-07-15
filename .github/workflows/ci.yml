@@ -40,6 +40,10 @@ jobs:
       - name: Unit Test
         run: poetry run pytest --cov-report=xml --cov=dev/
 
+      # Fix source path in coverage report.
+      - name: Fix Coverage Report
+        run: sed -i "s@$GITHUB_WORKSPACE@/github/workspace/@g" coverage/report.xml
+
       # Run analysis.
       - name: Static Analysis
         uses: sonarsource/sonarcloud-github-action@master
