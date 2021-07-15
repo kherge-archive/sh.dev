@@ -1,19 +1,10 @@
 from .cli import config, container, env, image, volume
 from .manage.config import default
+from typing import NoReturn
 
 import logging
 import typer
-
-# Set default settings.
-default("core.label", "default")
-default("core.name", "default")
-
-app = typer.Typer(add_completion=False)
-app.add_typer(config.app)
-app.add_typer(container.app)
-app.add_typer(env.app)
-app.add_typer(image.app)
-app.add_typer(volume.app)
+import sys
 
 # Configure root logger.
 logging.basicConfig(
@@ -21,7 +12,38 @@ logging.basicConfig(
     level=logging.ERROR
 )
 
-def setVerbosity(level: int):
+# Improve exception handling.
+def handle_error(type, error: BaseException, trace) -> NoReturn:
+    """Displays the error before exiting.
+
+    If the current logging level is set to DEBUG, the error will be re-raised
+    as is to allow the full stack trace to be printed for analysis. For any
+    other logging level, the string representation of the error will be
+    printed to STDERR and the typer.Exit error is raised with a status code
+    of 1 (one).
+    """
+    if logging.getLogger().isEnabledFor(logging.DEBUG):
+        sys.__excepthook__(type, error, trace)
+    else:
+        typer.secho(str(error), fg=typer.colors.RED)
+
+        sys.exit(1)
+
+sys.excepthook = handle_error
+
+# Set default settings.
+default("core.label", "default")
+default("core.name", "default")
+
+# Configure the CLI parser.
+app = typer.Typer(add_completion=False)
+app.add_typer(config.app)
+app.add_typer(container.app)
+app.add_typer(env.app)
+app.add_typer(image.app)
+app.add_typer(volume.app)
+
+def set_verbosity(level: int):
     """Sets the logging level based on the verbosity requested.
 
     The verbosity level is mapped to these logging levels:
@@ -47,7 +69,7 @@ def main(
         0,
         "-v",
         "--verbose",
-        callback=setVerbosity,
+        callback=set_verbosity,
         count=True,
         help="Increases verbosity of invoked commands."
     )

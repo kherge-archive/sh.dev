@@ -1,6 +1,5 @@
 from .. import CONFIG_DIR
 from ..manage import config
-from .utils import handle_error
 from tabulate import tabulate
 
 import json
@@ -22,34 +21,28 @@ def get(
     """
     Retrieves the value of a configuration setting.
     """
-    try:
-        if config.exists(name):
-            typer.echo(config.get(name))
-        else:
-            typer.secho("<not set>", err=True, fg=typer.colors.RED)
-    except BaseException as error:
-        handle_error(error)
+    if config.exists(name):
+        typer.echo(config.get(name))
+    else:
+        typer.secho("<not set>", err=True, fg=typer.colors.RED)
 
 @app.command(name="list")
 def listing():
     """
     Lists the available configuration settings.
     """
-    try:
-        paths = os.listdir(CONFIG_DIR)
-        paths.sort()
+    paths = os.listdir(CONFIG_DIR)
+    paths.sort()
 
-        table = []
+    table = []
 
-        for path in paths:
-            name = os.path.splitext(path)[0]
-            value = config.get(name)
+    for path in paths:
+        name = os.path.splitext(path)[0]
+        value = config.get(name)
 
-            table.append([name, value])
+        table.append([name, value])
 
-        typer.echo(tabulate(table, headers=["key", "value"]))
-    except BaseException as error:
-        handle_error(error)
+    typer.echo(tabulate(table, headers=["key", "value"]))
 
 @app.command()
 def set(
@@ -85,10 +78,7 @@ def set(
 
         dev config set --json example '{"example":"My example string."}'
     """
-    try:
-        if is_json:
-            value = json.loads(value)
+    if is_json:
+        value = json.loads(value)
 
-        config.set(name, value)
-    except BaseException as error:
-        handle_error(error)
+    config.set(name, value)
