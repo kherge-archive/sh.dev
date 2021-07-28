@@ -112,7 +112,7 @@ container_is_running()
 ##
 container_start()
 {
-    must docker start "$CONTAINER" > /dev/null
+    must docker start --hostname dev "$CONTAINER" > /dev/null
 }
 
 ###
