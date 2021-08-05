@@ -2,16 +2,28 @@
 ################################################################################
 # Containerized Development Environment Manager                                #
 #                                                                              #
-# This POSIX-compliant shell script uses the Docker CLI to create, manage, and #
-# remove volumes, images, and containers that are used to run containerized    #
-# development environments.                                                    #
+# This POSIX-compliant shell script uses the Docker CLI to create and manage   #
+# an individual containerized environment, including a volume that is used to  #
+# persist a home directory across container rebuilds.                          #
 ################################################################################
+
+# Exit if a command fails.
+set -e
 
 # The name of the container.
 CONTAINER=dev
 
-# The name of the image.
-IMAGE=kherge/dev:latest
+# The name of the container host.
+HOSTNAME=dev
+
+# The container image tag.
+IMAGE="kherge/dev:latest"
+
+# The shell executable.
+SHELL=bash
+
+# The username.
+USERNAME=dev
 
 # The name of the volume.
 VOLUME=dev
@@ -19,88 +31,40 @@ VOLUME=dev
 # Utilities ####################################################################
 
 ###
-# Requires that a command successfully execute.
+# Prints the given arguments if DEBUG is set to 1 (one).
 #
-# @param $@ The command line arguments.
-#
-# @stderr   The output of the command.
-# @stdout   The output of the command.
-#
-# @exit     The same status as the command if not 0 (zero).
+# @param $@ The arguments to print.
 ##
-must()
+debug()
 {
-    "$@"
-
-    STATUS=$?
-
-    if [ $STATUS -ne 0 ]; then
-        exit $STATUS
+    if [ "$DEBUG" = '1' ]; then
+        echo "$@" >&2
     fi
 }
 
 # Management ###################################################################
 
 ###
-# Attaches a shell to a running container.
-##
-container_attach()
-{
-    docker exec \
-        --interactive \
-        --tty \
-        --user dev \
-        --workdir /home/dev \
-        "$CONTAINER" bash
-
-    exit $?
-}
-
-###
-# Creates a container, if one does not already exist.
-#
-# @must
+# Creates the new container.
 ##
 container_create()
 {
-    if ! volume_exists; then
-        volume_create
-    fi
-
-    must docker container create \
-        "--name=$CONTAINER" \
-        "--volume=$VOLUME:/home/$USER" \
+    docker container create \
+        --hostname="$HOSTNAME" \
+        --init \
+        --name="$CONTAINER" \
+        --volume="$VOLUME:/home/dev" \
         "$IMAGE" > /dev/null
 }
 
 ###
-# Checks if a container exists.
+# Checks if the container exists.
 #
-# @return Returns `0` if it exists, or `1` if not.
+# @return 0|1 If it exists, 0 (zero) is returned. Otherwise, 1 (one) is returned.
 ##
 container_exists()
 {
-    if ! STATUS="$(container_status)"; then
-        exit 1
-    elif [ "$STATUS" = '' ]; then
-        return 1
-    fi
-
-    return 0
-}
-
-###
-# Checks if a container is running.
-#
-# @return Returns `0` if running, or `1` if not.
-#
-# @exit   Exits with `1` if `container_status` failed.
-##
-container_is_running()
-{
-    if ! STATUS="$(container_status)"; then
-        exit 1
-    elif [ "$STATUS" = 'running' ]; then
+    if docker container inspect "$CONTAINER" > /dev/null 2> /dev/null; then
         return 0
     fi
 
@@ -108,92 +72,318 @@ container_is_running()
 }
 
 ###
-# Starts a container.
+# Checks if the container is running.
+#
+# @return 0|1 If it is running, 0 (zero) is returned. Otherwise, 1 (one) is returned.
+##
+container_is_running()
+{
+    STATUS="$(container_status)"
+
+    if [ "$STATUS" = 'running' ]; then
+        return 0
+    fi
+
+    return 1
+}
+
+###
+# Removes the existing container.
+##
+container_remove()
+{
+    docker container rm "$CONTAINER" > /dev/null
+}
+
+###
+# Executes a shell inside the running container.
+##
+container_shell()
+{
+    docker container exec \
+        --interactive \
+        --tty \
+        --user="$USERNAME" \
+        --workdir="/home/$USERNAME" \
+        "$CONTAINER" "$SHELL"
+}
+
+###
+# Starts the stopped or exited container.
 ##
 container_start()
 {
-    must docker start --hostname dev "$CONTAINER" > /dev/null
+    docker container start "$CONTAINER" > /dev/null
 }
 
 ###
 # Prints the status of the container.
 #
-# @stdout The container status.
-#
-# @must
+# @stdout The status of the container.
 ##
 container_status()
 {
-    must docker ps --all --filter "name=$CONTAINER" --format '{{.State}}'
+    STATUS="$(docker ps --all --filter "name=$CONTAINER" --format '{{.State}}')"
+
+    debug "Container status: $STATUS"
+
+    echo "$STATUS"
 }
 
 ###
-# Stops a container.
+# Stops the running container.
 ##
 container_stop()
 {
-    must docker container stop "$CONTAINER" > /dev/null
+    docker container stop "$CONTAINER" > /dev/null
 }
 
 ###
-# Creates a volume.
+# Creates the new volume.
 ##
 volume_create()
 {
-    debug "Creating the volume..."
-
-    must docker volume create "$VOLUME" > /dev/null
+    docker volume create "$VOLUME" > /dev/null
 }
 
 ###
-# Checks if a volume exists.
+# Checks if the volume exists.
 #
-# @return Returns `0` if it exists, or `1` if not.
+# @return 0|1 If it exists, 0 (zero) is returned. Otherwise, 1 (one) is returned.
 ##
 volume_exists()
 {
-    debug "Checking if the volume exists..."
+    if docker volume inspect "$VOLUME" > /dev/null 2> /dev/null; then
+        return 0
+    fi
 
-    docker volume inspect "$VOLUME" > /dev/null 2>&1
+    return 1
+}
 
-    return $?
+###
+# Removes the existing volume.
+##
+volume_remove()
+{
+    docker volume rm "$VOLUME" > /dev/null
+}
+
+# Commands #####################################################################
+
+###
+# Routes the container command to a subcommand.
+#
+# @param $@ The command line arguments.
+##
+cmd_container()
+{
+    COMMAND="$1"
+
+    if [ "$COMMAND" = '' ]; then
+        COMMAND='help 0'
+    else
+        shift
+
+        if ! type "cmd_container_$COMMAND" > /dev/null; then
+            COMMAND='help 3'
+        fi
+    fi
+
+    cmd_container_$COMMAND "$@"
+}
+
+###
+# Creates the container if it does not already exist.
+##
+cmd_container_create()
+{
+    if ! container_exists; then
+        debug "Container does not existing, creating..."
+
+        container_create
+    fi
+}
+
+###
+# Displays a help message for managing the container.
+##
+cmd_container_help()
+{
+    CODE=$1
+
+    cat - >&2 <<USAGE
+Usage: $(basename "$0") container COMMAND
+Manages the container for the environment.
+
+COMMAND
+
+    create  Creates the container.
+    help    Displays this help message.
+    remove  Removes the container.
+    shell   Runs a shell in the container.
+    start   Starts the container.
+    stop    Stops the container.
+USAGE
+
+    exit $CODE
+}
+
+###
+# Removes the container if it still exists.
+##
+cmd_container_remove()
+{
+    if container_exists; then
+        debug "Container exists, removing..."
+
+        container_remove
+    fi
+}
+
+###
+# Executes a shell inside the container.
+#
+# - If the volume does not exist, it is created.
+# - If the container does not exist, it is created.
+##
+cmd_container_shell()
+{
+    cmd_volume_create
+    cmd_container_start
+
+    container_shell
+}
+
+###
+# Starts the container if it is not already running.
+##
+cmd_container_start()
+{
+    cmd_container_create
+
+    if ! container_is_running; then
+        debug "Container is not running, starting..."
+
+        container_start
+    fi
+}
+
+###
+# Stops the container if it is running.
+##
+cmd_container_stop()
+{
+    if container_exists && container_is_running; then
+        debug "Container is running, stopping..."
+
+        container_stop
+    fi
+}
+
+###
+# Displays a help message for managing the utility.
+##
+cmd_help()
+{
+    CODE=$1
+
+    cat - >&2 <<USAGE
+Usage: $(basename "$0") COMMAND
+Manages a containerized development environment.
+
+COMMAND
+
+    container  Manages the container.
+    help       Displays this help message.
+    volume     Manages the volume.
+USAGE
+
+    exit $CODE
+}
+
+###
+# Routes the volume command to a subcommand.
+#
+# @param $@ The command line arguments.
+##
+cmd_volume()
+{
+    COMMAND="$1"
+
+    if [ "$COMMAND" = '' ]; then
+        COMMAND='help 0'
+    else
+        shift
+
+        if ! type "cmd_volume_$COMMAND" > /dev/null; then
+            COMMAND='help 3'
+        fi
+    fi
+
+    cmd_volume_$COMMAND "$@"
+}
+
+###
+# Creates the volume if it does not exist.
+##
+cmd_volume_create()
+{
+    if ! volume_exists; then
+        debug "Volume does not existing, creating..."
+
+        volume_create
+    fi
+}
+
+###
+# Displays a help message for managing the volume.
+##
+cmd_volume_help()
+{
+    CODE=$1
+
+    cat - >&2 <<USAGE
+Usage: $(basename "$0") volume COMMAND
+Manages the volume for the environment.
+
+COMMAND
+
+    create  Creates the volume.
+    help    Displays this help message.
+    remove  Removes the volume.
+USAGE
+
+    exit $CODE
+}
+
+###
+# Removes the volume if it still exists.
+##
+cmd_volume_remove()
+{
+    if volume_exists; then
+        debug "Volume exists, removing..."
+
+        volume_remove
+    fi
 }
 
 # CLI ##########################################################################
 
-if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
-    cat - >&2 <<HELP
-Usage: $(basename "$0") [OPTIONS]
-Manages a containerized development environment.
+# Get the command specified.
+COMMAND="$1"
 
-This script will perform a series of steps:
+# Default to running "./dev.sh container shell".
+if [ "$COMMAND" = '' ]; then
+    COMMAND=container_shell
+else
+    shift
 
-- Check if the container is not running.
-    - If the volume does not exist, create it.
-    - If the container does not exist, create it.
-    - Start the container.
-- Attach a shell to the container.
-
-The final step is always, unconditionally performed.
-
-OPTIONS
-
-    -h, --help  Displays this help message.
-HELP
-
-    exit 0
+    # Default to running "./dev.sh help" with error exit status.
+    if ! type "cmd_$COMMAND" > /dev/null; then
+        COMMAND='help 3'
+    fi
 fi
 
-if ! container_is_running; then
-    if ! volume_exists; then
-        volume_create
-    fi
-
-    if ! container_exists; then
-        container_create
-    fi
-
-    container_start
-fi
-
-container_attach
+# Run the command.
+cmd_$COMMAND "$@"

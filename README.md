@@ -15,6 +15,7 @@ Features
 
 - Uses Docker to manage containers.
     - Built on the [kherge/dev](https://github.com/kherge/docker.dev) image.
+    - Uses an init process to clean up processes.
     - Volume is used on the home directory so that its data can persist across container recreations, allowing for iterative changes to a container's Dockerfile. (Just remember to install everything locally!)
 
 Requirements
@@ -25,9 +26,6 @@ Requirements
 
 Installation
 ------------
-
-1. Clone this repository to: `$HOME/.local/opt/sh.dev`
-2. Create a symbolic link from `$HOME/.local/opt/sh.dev/dev.sh` to: `$HOME/.local/bin/dev`
 
 ```sh
 git clone https://github.com/kherge/sh.dev.git ~/.local/opt/sh.dev
@@ -40,3 +38,5 @@ ln -s ~/.local/opt/sh.dev/dev.sh ~/.local/bin/dev
 > mkdir -p ~/.local/bin
 > mkdir -p ~/.local/opt
 > ```
+>
+> You may also need to add `$HOME/.local/bin` to `$PATH`.
