@@ -10,6 +10,10 @@
 # Exit if a command fails.
 set -e
 
+# Command line client.
+CLIENT=docker
+#CLIENT=podman
+
 # The name of the container.
 CONTAINER=dev
 
@@ -49,7 +53,7 @@ debug()
 ##
 container_create()
 {
-    docker container create \
+    "$CLIENT" container create \
         --hostname="$HOSTNAME" \
         --init \
         --name="$CONTAINER" \
@@ -64,7 +68,7 @@ container_create()
 ##
 container_exists()
 {
-    if docker container inspect "$CONTAINER" > /dev/null 2> /dev/null; then
+    if "$CLIENT" container inspect "$CONTAINER" > /dev/null 2> /dev/null; then
         return 0
     fi
 
@@ -92,7 +96,7 @@ container_is_running()
 ##
 container_remove()
 {
-    docker container rm "$CONTAINER" > /dev/null
+    "$CLIENT" container rm "$CONTAINER" > /dev/null
 }
 
 ###
@@ -100,7 +104,7 @@ container_remove()
 ##
 container_shell()
 {
-    docker container exec \
+    "$CLIENT" container exec \
         --interactive \
         --tty \
         --user="$USERNAME" \
@@ -113,7 +117,7 @@ container_shell()
 ##
 container_start()
 {
-    docker container start "$CONTAINER" > /dev/null
+    "$CLIENT" container start "$CONTAINER" > /dev/null
 }
 
 ###
@@ -123,7 +127,17 @@ container_start()
 ##
 container_status()
 {
-    STATUS="$(docker ps --all --filter "name=$CONTAINER" --format '{{.State}}')"
+    local FIELD
+
+    case "$CLIENT" in
+        docker) FIELD=".State";;
+        podman) FIELD=".Status";;
+        *)
+            echo "$CLIENT: client not supported" >&2
+            return 1
+    esac
+
+    STATUS="$("$CLIENT" ps --all --filter "name=$CONTAINER" --format "{{$FIELD}}")"
 
     debug "Container status: $STATUS"
 
@@ -135,7 +149,7 @@ container_status()
 ##
 container_stop()
 {
-    docker container stop "$CONTAINER" > /dev/null
+    "$CLIENT" container stop "$CONTAINER" > /dev/null
 }
 
 ###
@@ -143,7 +157,7 @@ container_stop()
 ##
 volume_create()
 {
-    docker volume create "$VOLUME" > /dev/null
+    "$CLIENT" volume create "$VOLUME" > /dev/null
 }
 
 ###
@@ -153,7 +167,7 @@ volume_create()
 ##
 volume_exists()
 {
-    if docker volume inspect "$VOLUME" > /dev/null 2> /dev/null; then
+    if "$CLIENT" volume inspect "$VOLUME" > /dev/null 2> /dev/null; then
         return 0
     fi
 
@@ -165,7 +179,7 @@ volume_exists()
 ##
 volume_remove()
 {
-    docker volume rm "$VOLUME" > /dev/null
+    "$CLIENT" volume rm "$VOLUME" > /dev/null
 }
 
 # Commands #####################################################################
